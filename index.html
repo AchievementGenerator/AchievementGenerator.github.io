@@ -1,13 +1,12 @@
 <html>
 	<head>
 		<title>TF2 Achievement Generator</title>
-		<script src="Generator.js"></script>
 		<link rel="stylesheet" type="text/css" href="Style.css">
 	</head>
 	<body onload="roundRect()">
 		<canvas height="72" width="772" id="output">Hello IE user!</canvas>
 		<script>
-		var ctx = document.getElementById('output').getContext('2d');
+		var ctx = document.getElementById("output").getContext("2d");
 		/**
 		* Draws a rounded rectangle using the current state of the canvas. 
 		* If you omit the last three params, it will draw a rectangle 
@@ -22,7 +21,7 @@
 		* @param {Boolean} stroke Whether to stroke the rectangle. Defaults to true.
 		*/
 		function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
-			var ctx = document.getElementById('output').getContext('2d');
+			var ctx = document.getElementById("output").getContext("2d");
 			console.log(ctx);
 			if (typeof stroke == "undefined" ) {
 				stroke = true;
@@ -70,6 +69,64 @@
 		<br />
 		Select your image:
 		<br />
+		<button type="button" id="ScoutAchievements" onclick="toggleDisplay(this);">Scout Achievements</button>
+		<div id="ScoutAchievements_" style="display:none" data-al="0"></div>
+		<br />
+		<button type="button" id="SoldierAchievements" onclick="toggleDisplay(this);">Soldier Achievements</button>
+		<div id="SoldierAchievements_" style="display:none" data-al="0"></div>
+		<br />
+		<button type="button" id="DemomanAchievements" onclick="toggleDisplay(this);">Demoman Achievements</button>
+		<div id="DemomanAchievements_" style="display:none" data-al="0"></div>
+		<br />
+		<button type="button" id="MedicAchievements" onclick="toggleDisplay(this);">Medic Achievements</button>
+		<div id="MedicAchievements_" style="display:none" data-al="0"></div>
+		<br />
+		<button type="button" id="HeavyAchievements" onclick="toggleDisplay(this);">Heavy Achievements</button>
+		<div id="HeavyAchievements_" style="display:none" data-al="0"></div>
+		<br />
+		<button type="button" id="SniperAchievements" onclick="toggleDisplay(this);">Sniper Achievements</button>
+		<div id="SniperAchievements_" style="display:none" data-al="0"></div>
+		<br />
+		<button type="button" id="PyroAchievements" onclick="toggleDisplay(this);">Pyro Achievements</button>
+		<div id="PyroAchievements_" style="display:none" data-al="0"></div>
+		<br />
+		<button type="button" id="EngineerAchievements" onclick="toggleDisplay(this);">Engineer Achievements</button>
+		<div id="EngineerAchievements_" style="display:none" data-al="0"></div>
+		<br />
+		<button type="button" id="SpyAchievements" onclick="toggleDisplay(this);">Spy Achievements</button>
+		<div id="SpyAchievements_" style="display:none" data-al="0"></div>
+		<br />
+		<button type="button" id="GeneralAchievements" onclick="toggleDisplay(this);">General Achievements</button>
+		<div id="GeneralAchievements_" style="display:none" data-al="0"></div>
+		<br />
+		<button type="button" id="HalloweenAchievements" onclick="toggleDisplay(this);">Halloween Achievements</button>
+		<div id="HalloweenAchievements_" style="display:none" data-al="0"></div>
+		<br />
+		<button type="button" id="ReplayAchievements" onclick="toggleDisplay(this);">Replay Achievements</button>
+		<div id="ReplayAchievements_" style="display:none" data-al="0"></div>
+		<br />
+		<button type="button" id="ChristmasAchievements" onclick="toggleDisplay(this);">Christmas Event Achievements</button>
+		<div id="ChristmasAchievements_" style="display:none" data-al="0"></div>
+		<br />
+		<button type="button" id="Astrochievements" onclick="toggleDisplay(this);">Astro-chievements</button>
+		<div id="Astrochievements_" style="display:none" data-al="0"></div>
+		<br />
+		<button type="button" id="MannvsMachievements" onclick="toggleDisplay(this);">Mann vs. Machievements</button>
+		<div id="MannvsMachievements_" style="display:none" data-al="0"></div>
+		<br />
+		<button type="button" id="MapAchievements" onclick="toggleDisplay(this);">Map Achievements</button>
+		<div id="MapAchievements_" style="display:none" data-al="0"></div>
+		<br />
+		<button type="button" id="JokeAchievements" onclick="toggleDisplay(this);">Joke Achievements</button>
+		<div id="JokeAchievements_" style="display:none" data-al="0"></div>
+		<br />
+		<button type="button" id="FakeAchievements" onclick="toggleDisplay(this);">Fake Achievements</button>
+		<div id="FakeAchievements_" style="display:none" data-al="0"></div>
+		<br />
+		<button type="button" id="TauntIcons" onclick="toggleDisplay(this);">Taunt Icons</button>
+		<div id="TauntIcons_" style="display:none" data-al="0"></div>
+		<br />
+		
 		Choose your own icon: 
 		<input name="dispimg" id="dispimg" type="file">
 		<br />
@@ -80,6 +137,9 @@
 		Uploaded Imgur Link: <a href="" id="linkoutput"></a>
 		
 		<script>
+		window.ondragover = function(e) {e.preventDefault()}
+		window.ondrop = function(e) {e.preventDefault(); handleImage1(e.dataTransfer.files[0]); }
+		
 		document.getElementById("fraction").style.display = "inherit";
 		document.getElementById("complete").onchange = function() {hs()};
 		document.getElementById("num").onchange = function() {hs()};
@@ -136,6 +196,7 @@
 				ctx.fillStyle="#C8B996";
 				ctx.fillText(dName,85,40);
 			}
+			console.log(primship);
 			ctx.drawImage(primship,4,4,64,64);
 			console.log("success");
 		}
@@ -174,6 +235,9 @@
 				ctx.fillRect(86,50,301,15);
 				ctx.fillStyle="#C8B996";
 				ctx.fillRect(86,50,length,15);
+				ctx.font="bold 10px Verdana, sans-serif";
+				ctx.fillStyle="#C8B996";
+				ctx.fillText(num+"/"+den,392,60);
 					
 			}
 			else
@@ -187,7 +251,7 @@
 		redraw("#373737");
 		function upload() {
 			
-			var file = document.getElementById('output').toDataURL("image/png");
+			var file = document.getElementById("output").toDataURL("image/png");
 			var file1 = file.replace("data:image/png;base64,", "");
 			
 			console.log(file);
@@ -199,23 +263,23 @@
 			xhr.open("POST", "https://api.imgur.com/3/image.json");
 			xhr.onload = function() {
 				
-				document.getElementById('linkoutput').href = JSON.parse(xhr.responseText).data.link;
-				document.getElementById('linkoutput').innerHTML = JSON.parse(xhr.responseText).data.link;
+				document.getElementById("linkoutput").href = JSON.parse(xhr.responseText).data.link;
+				document.getElementById("linkoutput").innerHTML = JSON.parse(xhr.responseText).data.link;
 				console.log(JSON.parse(xhr.responseText).data.link);
 				
 			}
 			
-			xhr.setRequestHeader('Authorization', 'Client-ID 324c0b6899d6e55');
+			xhr.setRequestHeader("Authorization", "Client-ID 324c0b6899d6e55");
 			
 			xhr.send(fd);
 			
 			XMLHttpRequest.status
 		}
 		
-		var imageLoader = document.getElementById('dispimg');
-		imageLoader.addEventListener('change', handleImage, false);
-		var canvas = document.getElementById('output');
-		var ctx = canvas.getContext('2d');
+		var imageLoader = document.getElementById("dispimg");
+		imageLoader.addEventListener("change", handleImage, false);
+		var canvas = document.getElementById("output");
+		var ctx = canvas.getContext("2d");
 		var preimgtest = "abc";
 		
 		function handleImage(e){
@@ -224,7 +288,7 @@
 			reader.onload = function(event){
 				var imagepreload = new Image();
 				imagepreload.onload = function(){
-						document.getElementById('testimg').src=imagepreload.src;
+						document.getElementById("testimg").src=imagepreload.src;
 						var primship = document.getElementById("testimg");
 				}
 				imagepreload.src = event.target.result;
@@ -233,12 +297,168 @@
 			reader.readAsDataURL(e.target.files[0]);
 			//console.log(event.target.result);
 			var primship = document.getElementById("testimg");
+			console.log(primship);
 			ctx.drawImage(primship,4,4,64,64);
 			console.log("success");
 			updatetestimg();
 			hs();
 			
 		
+		}
+		
+		function handleImage1(file){
+			
+			var reader = new FileReader();
+			reader.onload = function(event){
+				var imagepreload = new Image();
+				imagepreload.onload = function(){
+						document.getElementById("testimg").src=imagepreload.src;
+						var primship = document.getElementById("testimg");
+						ctx.drawImage(primship,4,4,64,64);
+				}
+				imagepreload.src = event.target.result;
+				preimgtest = imagepreload.src;
+			}
+			reader.readAsDataURL(file);
+			//console.log(event.target.result);
+			var primship = document.getElementById("testimg");
+			console.log(primship);
+			ctx.drawImage(primship,4,4,64,64);
+			console.log("success");
+			updatetestimg();
+			hs();
+			
+		
+		}
+		
+		function toggleDisplay(ele) {
+			
+			var id = ele.id;
+			var id_ = id.replace("ments", "ments_");
+			console.log(document.getElementById(id_));
+			if (document.getElementById(id_).style.display == "none") {
+				
+				document.getElementById(id_).style.display = "inherit";
+				
+			}
+			else {
+				
+				document.getElementById(id_).style.display = "none";
+				
+			}
+			if (document.getElementById(id_).getAttribute("data-al") == 0) {
+			
+				document.getElementById(id_).setAttribute("data-al", "1");
+				
+				if (id_ == "ScoutAchievements_") {
+					
+					console.log(document.getElementById(id_).innerHTML);
+					var s = '<img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/101.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/102.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/103.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/104.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/105.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/106.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/107.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/108.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/109.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/110.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/111.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/112.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/113.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/114.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/115.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/116.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/117.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/118.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/119.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/120.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/121.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/122.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/123.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/124.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/125.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/126.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/127.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/128.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/129.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/130.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/131.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/132.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/133.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/134.png" onclick="preset(this);">';
+					document.getElementById(id_).innerHTML = s;
+					
+				}
+				if (id_ == "SoldierAchievements_") {
+					
+					document.getElementById(id_).innerHTML = '<img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2000.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2001.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2002.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2003.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2004.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2005.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2006.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2007.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2008.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2009.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2010.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2011.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2012.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2013.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2014.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2015.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2016.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2017.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2018.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2019.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2020.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2021.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2022.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2023.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2024.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2025.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2026.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2027.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2028.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2029.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2030.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2031.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2032.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2033.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2034.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2035.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2036.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2037.jpg" onclick="preset(this);">';
+					
+				}
+				if (id_ == "DemomanAchievements_") {
+					
+					document.getElementById(id_).innerHTML = '<img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2100.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2101.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2102.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2103.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2104.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2105.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2106.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2107.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2108.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2109.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2110.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2111.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2112.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2113.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2114.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2115.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2116.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2117.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2118.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2119.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2120.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2121.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2122.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2123.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2124.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2125.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2126.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2127.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2128.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2129.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2130.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2131.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2132.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2133.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2134.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2135.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2136.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2137.jpg" onclick="preset(this);">';
+					
+				}
+				if (id_ == "MedicAchievements_") {
+					
+					document.getElementById(id_).innerHTML = '<img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/700.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/701.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/702.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/703.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/704.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/705.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/706.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/707.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/708.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/709.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/710.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/711.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/712.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/713.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/714.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/715.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/716.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/717.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/718.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/719.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/720.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/721.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/722.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/723.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/724.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/725.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/726.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/727.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/728.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/729.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/730.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/731.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/732.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/733.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/734.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/735.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/736.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/737.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/738.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/739.png" onclick="preset(this);">';
+					
+				}
+				if (id_ == "HeavyAchievements_") {
+					
+					document.getElementById(id_).innerHTML = '<img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/500.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/501.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/502.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/503.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/504.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/505.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/506.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/507.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/508.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/509.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/510.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/511.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/512.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/513.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/514.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/515.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/516.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/517.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/518.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/519.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/520.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/521.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/522.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/523.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/524.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/525.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/526.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/527.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/528.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/529.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/530.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/531.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/532.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/533.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/534.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/535.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/536.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/537.png" onclick="preset(this);">';
+					
+				}
+				if (id_ == "SniperAchievements_") {
+					
+					document.getElementById(id_).innerHTML = '<img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/800.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/801.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/802.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/803.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/804.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/805.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/806.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/807.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/808.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/809.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/810.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/811.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/812.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/813.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/814.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/815.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/816.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/817.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/818.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/819.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/820.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/821.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/822.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/823.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/824.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/825.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/826.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/827.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/828.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/829.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/830.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/831.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/832.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/833.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/834.png" onclick="preset(this);">';
+					
+				}
+				if (id_ == "PyroAchievements_") {
+					
+					document.getElementById(id_).innerHTML = '<img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/300.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/301.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/302.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/303.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/304.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/305.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/306.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/307.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/308.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/309.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/310.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/311.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/312.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/313.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/314.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/315.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/316.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/317.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/318.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/319.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/320.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/321.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/322.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/323.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/324.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/325.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/326.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/327.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/328.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/329.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/330.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/331.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/332.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/333.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/334.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/335.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/336.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/337.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/338.png" onclick="preset(this);">';
+					
+				}
+				if (id_ == "EngineerAchievements_") {
+					
+					document.getElementById(id_).innerHTML = '<img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2200.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2201.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2202.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2203.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2204.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2205.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2206.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2207.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2208.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2209.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2210.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2211.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2212.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2213.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2214.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2215.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2216.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2217.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2218.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2219.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2220.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2221.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2222.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2223.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2224.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2225.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2226.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2227.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2228.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2229.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2230.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2231.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2232.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2233.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2234.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2235.jpg" onclick="preset(this);">';
+					
+				}
+				if (id_ == "SpyAchievements_") {
+					
+					document.getElementById(id_).innerHTML = '<img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/900.jpg" onclick="image(900, &quot;jpg&quot;);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/900.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/901.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/902.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/903.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/904.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/905.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/906.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/907.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/908.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/909.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/910.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/911.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/912.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/913.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/914.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/915.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/916.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/917.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/918.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/919.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/920.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/921.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/922.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/923.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/924.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/925.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/926.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/927.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/928.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/929.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/930.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/931.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/932.png" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/933.png" onclick="preset(this);">';
+					
+				}
+				if (id_ == "GeneralAchievements_") {
+					
+					document.getElementById(id_).innerHTML = '<img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/1.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/2.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/3.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/4.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/5.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/6.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/7.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/8.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/9.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/10.jpg" onclick="preset(this);" /> <img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/11.jpg" onclick="preset(this);">';
+					
+				}
+				if (id_ == "HalloweenAchievements_") {
+					
+					document.getElementById(id_).innerHTML = "<ol /> <imgli>html data</li /> <img/ol>";
+					
+				}
+				if (id_ == "ReplayAchievements_") {
+					
+					document.getElementById(id_).innerHTML = "<ol /> <imgli>html data</li /> <img/ol>";
+					
+				}
+				if (id_ == "ChristmasAchievements_") {
+					
+					document.getElementById(id_).innerHTML = "<ol /> <imgli>html data</li /> <img/ol>";
+					
+				}
+				if (id_ == "MannvsMachievements_") {
+					
+					document.getElementById(id_).innerHTML = "<ol /> <imgli>html data</li /> <img/ol>";
+					
+				}
+				if (id_ == "JokeAchievements_") {
+					
+					document.getElementById(id_).innerHTML = "<ol /> <imgli>html data</li /> <img/ol>";
+					
+				}
+				if (id_ == "FakeAchievements_") {
+					
+					document.getElementById(id_).innerHTML = "<ol /> <imgli>html data</li /> <img/ol>";
+					
+				}
+				if (id_ == "TauntIcons_") {
+					
+					document.getElementById(id_).innerHTML = "<ol /> <imgli>html data</li /> <img/ol>";
+					
+				}
+				
+			}
+			
+			else {
+				
+				
+				
+			}
+			
+		}
+		
+		function preset(ele) {
+			
+			console.log(ele);
+			var id = ele;
+			var primship = document.ele;
+			
+			console.log(primship);
+			var canvas = document.getElementById("output");
+			var ctx = canvas.getContext("2d");
+			ctx.drawImage(ele,4,4,64,64);
+			
 		}
 		
 		
