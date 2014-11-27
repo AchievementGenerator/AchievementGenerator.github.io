@@ -126,6 +126,9 @@
 		<button type="button" id="TauntIcons" onclick="toggleDisplay(this);">Taunt Icons</button>
 		<div id="TauntIcons_" style="display:none" data-al="0"></div>
 		<br />
+		<button type="button" id="StoneRabbit" onclick="toggleDisplay(this);">StoneRabbit</button>
+		<div id="StoneRabbit_" style="display:none" data-al="0"></div>
+		<br />
 		
 		Choose your own icon: 
 		<input name="dispimg" id="dispimg" type="file">
@@ -335,6 +338,7 @@
 			
 			var id = ele.id;
 			var id_ = id.replace("ments", "ments_");
+			var id_ = id.replace("StoneRabbit", "StoneRabbit_");
 			console.log(document.getElementById(id_));
 			if (document.getElementById(id_).style.display == "none") {
 				
@@ -349,6 +353,15 @@
 			if (document.getElementById(id_).getAttribute("data-al") == 0) {
 			
 				document.getElementById(id_).setAttribute("data-al", "1");
+				
+				console.log("att");
+				
+				if (id_ == "StoneRabbit_") {
+					
+					console.l
+					document.getElementById("StoneRabbit_").innerHTML = '<img src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/1600.png" onclick="preset(this);" />';
+					
+				}
 				
 				if (id_ == "ScoutAchievements_") {
 					
@@ -452,9 +465,8 @@
 			
 			console.log(ele);
 			var id = ele;
-			primship = ele;
 			
-			console.log(primship);
+			primship = ele;
 			var canvas = document.getElementById("output");
 			var ctx = canvas.getContext("2d");
 			ctx.drawImage(ele,4,4,64,64);
