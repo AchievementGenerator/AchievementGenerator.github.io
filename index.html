@@ -337,8 +337,7 @@
 		function toggleDisplay(ele) {
 			
 			var id = ele.id;
-			var id_ = id.replace("ments", "ments_");
-			var id_ = id.replace("StoneRabbit", "StoneRabbit_");
+			var id_ = id + "_";
 			console.log(document.getElementById(id_));
 			if (document.getElementById(id_).style.display == "none") {
 				
