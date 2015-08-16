@@ -2,53 +2,12 @@
 	<head>
 		<title>TF2 Achievement Generator</title>
 	</head>
-	<body onload="roundRect()">
+	<body id="elementBody">
 		<div id="outputcontainer" style="width: 100%;text-align:center;">
 			<canvas height="72" width="772" id="output" style="display: inline;">Hello IE user!</canvas>
 		</div>
-		<script>
-		var ctx = document.getElementById("output").getContext("2d");
-		/**
-		* Draws a rounded rectangle using the current state of the canvas. 
-		* If you omit the last three params, it will draw a rectangle 
-		* outline with a 5 pixel border radius 
-		* @param {CanvasRenderingContext2D} ctx
-		* @param {Number} x The top left x coordinate
-		* @param {Number} y The top left y coordinate 
-		* @param {Number} width The width of the rectangle 
-		* @param {Number} height The height of the rectangle
-		* @param {Number} radius The corner radius. Defaults to 5;
-		* @param {Boolean} fill Whether to fill the rectangle. Defaults to false.
-		* @param {Boolean} stroke Whether to stroke the rectangle. Defaults to true.
-		*/
-		function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
-			var ctx = document.getElementById("output").getContext("2d");
-			console.log(ctx);
-			if (typeof stroke == "undefined" ) {
-				stroke = true;
-			}
-			if (typeof radius === "undefined") {
-				radius = 5;
-			}
-			ctx.beginPath();
-			ctx.moveTo(x + radius, y);
-			ctx.lineTo(x + width - radius, y);
-			ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-			ctx.lineTo(x + width, y + height - radius);
-			ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-			ctx.lineTo(x + radius, y + height);
-			ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-			ctx.lineTo(x, y + radius);
-			ctx.quadraticCurveTo(x, y, x + radius, y);
-			ctx.closePath();
-			if (stroke) {
-				ctx.stroke();
-			}
-			if (fill) {
-				ctx.fill();
-			}			
-			}
-		</script>
+		<canvas id="imageToBase64" style="display: none"></canvas>
+		
 		<br />
 		<div id="textcontainer" style="width: 100%;text-align:center;">
 		<input type="text" placeholder="Achievement Name" id="name" oninput="hs();">
@@ -72,6 +31,7 @@
 			<input type="number" id="den" placeholder="Completion">
 		</div>
 		<br />
+		
 		Select an image below by clicking it:
 		<br />
 		<button type="button" id="ScoutAchievements" onclick="toggleDisplay(this);">Scout Achievements <img src="http://i.imgur.com/mYRHIm5.png" /></button>
@@ -133,513 +93,567 @@
 		<br />
 		<input name="dispimg" id="dispimg" type="file" value="Choose your own icon" style="display:none;"/>
 		<br />
-		<button type="button" id="uploadbutton">Upload the image</button>
+		<button type="button" id="uploadToImgurButton">Upload to imgur</button>
 		<br />
 		<img alt="" id="testimg" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"></img>
 		<br />
 		Uploaded Imgur Link: <a href="" id="linkoutput"></a>
 		</div>
-		
 		<script>
-		window.ondragover = function(e) {e.preventDefault()}
-		window.ondrop = function(e) {e.preventDefault(); handleImage1(e.dataTransfer.files[0]); }
-		
-		//document.getElementById("fraction").style.display = "inherit";
-		document.getElementById("complete").onchange = function() {hs()};
-		document.getElementById("num").onchange = function() {hs()};
-		document.getElementById("den").onchange = function() {hs()};
-		document.getElementById("progressbar").onchange = function() {hs()};
-		document.getElementById("uploadbutton").onclick = function() {upload()};
-		//document.getElementById("dispimg").onchange = function() {drawImg()};
-		XMLHttpRequest.onreadystatechange=function() {ut()};
-		
-		var primship = document.getElementById("testimg");
-		var priority = 0;
-		
-		function updatetestimg() {
-			
-			primship = document.getElementById("testimg");
-			
-		}
-		
-		function reportimg() {
-		console.log("img");
-		}
-		
-		
-		/**
-		* @param {String} Colour of rectangle
-		*/
-		function redraw(colour) {
-			var rName = document.getElementById("output");
-			var nName = document.getElementById("name").value;
-			var dName = document.getElementById("description").value;
-			var ctx = document.getElementById("output").getContext("2d");
-			ctx.clearRect(0, 0, rName.width, rName.height);
-			ctx.strokeStyle = colour;
-			ctx.fillStyle = colour;
-			roundRect(ctx, 0, 0, 772, 72, 5, true, true);	 
-			if (nName == "") {
-				 ctx.font="20px Verdana, sans-serif";
-				 ctx.fillStyle="#9DC34C";
-				 ctx.imageSmoothingEnabled= false
-				 ctx.fillText("Achievement Name",84,23);
-			 }
-			else {
-				 ctx.font="18px Verdana, sans-serif";
-				 ctx.fillStyle="#9DC34C";
-				 ctx.imageSmoothingEnabled= false
-				 ctx.fillText(nName,84,23);
-			 }
-			if (dName == "") { 
-				ctx.font="bold 10px Verdana, sans-serif";
-				ctx.fillStyle="#C8B996";
-				ctx.fillText("Achivement Description",85,40);
-			}
-			else {
-				ctx.font="bold 10px Verdana, sans-serif";
-				ctx.fillStyle="#C8B996";
-				ctx.fillText(dName,85,40);
-			}
-			console.log(primship);
-			console.log("success");
-		}
-		
-		var store = document.getElementById("testimg");
-		
-		function hs() {
-		
+			//Define vars
+			var canvas = document.getElementById("output"); 
+			var ctx = canvas.getContext("2d"); //Canvas conTeXt
+			var store = document.getElementById("testimg");
+			var progressBar = document.getElementById("progressbar");
 			var primship = document.getElementById("testimg");
+			var achievementNameInput = document.getElementById("name").value;
+			var achievementDescriptionInput = document.getElementById("description").value;
+			var achievementCompleteCheckbox = document.getElementById("complete");
+			var fractionNumeratorInput = document.getElementById("num");
+			var fractionDenominatorInput = document.getElementById("den");
+			var uploadToImgurInput = document.getElementById("uploadToImgurButton");
+			var imageLoader = document.getElementById("dispimg");
+			var fractionContainer = document.getElementById("fraction");
+			var uploadedImageLink = document.getElementById("linkoutput");
+			var pageBody = document.getElementById("elementBody");
+			var preimgtest = "abc";
 			
-			console.log(store + " store");
-			if (document.getElementById("complete").checked === false) {
-				document.getElementById("fraction").style.display = "inherit";
-				redraw("#373737");
-				console.log(ctx.fillStyle);
-				pro();
+			var priority = 0;
+			
+			//Define events
+			
+			elementBody.onload = function() {hs()};
+			window.ondragover = function(e) {e.preventDefault()};
+			window.ondrop = function(e) {e.preventDefault(); handleImage1(e.dataTransfer.files[0]); };
+			achievementCompleteCheckbox.onchange = function() {hs()};
+			fractionNumeratorInput.onchange = function() {hs()};
+			fractionDenominatorInput.onchange = function() {hs()};
+			progressBar.onchange = function() {hs()};
+			uploadToImgurInput.onclick = function() {upload()};
+			XMLHttpRequest.onreadystatechange=function() {ut()};
+			imageLoader.addEventListener("change", handleImage, false);
+			/*
+			fractionContainer.style.display = "inherit";
+			document.getElementById("dispimg").onchange = function() {drawImg()};
+			*/
+			
+			//Debug methods
+			function updatetestimg() {
+				
+				primship = document.getElementById("testimg");
 				
 			}
-			else {
-				<!-- document.getElementById("fraction").style.display = "none"; -->
-				redraw("#4F4F4F");
-				console.log(ctx.fillStyle);
-				pro();
-				
-			}
-			if (priority == 1) {
-				
-				ctx.drawImage(primship,4,4,64,64);
-				console.log(primship);
-				console.log("primship");
-				
-			}
-			else {
-				
-				preset(store);
-				console.log(store);
-				console.log("store");
-				
-			}
-			console.log("hello");
-			console.log(primship);
 			
-		}
-		
-		function pro() {
+			function reportimg() {
+			}
 			
-			console.log(document.getElementById("progressbar").checked);
+			//Canvas methods
 			
-			if (document.getElementById("progressbar").checked === true){
+			function refreshVariables() {
+				achievementNameInput = document.getElementById("name").value;
+				achievementDescriptionInput = document.getElementById("description").value;
+				achievementCompleteCheckbox = document.getElementById("complete");
+				fractionNumeratorInput = document.getElementById("num");
+				fractionDenominatorInput = document.getElementById("den");
+				uploadToImgurInput = document.getElementById("uploadToImgurButton");
+				imageLoader = document.getElementById("dispimg");
+				fractionContainer = document.getElementById("fraction");
+				uploadedImageLink = document.getElementById("linkoutput");
+			}
+			
+			//Method used to draw canvas BG
+			/**
+			* Draws a rounded rectangle using the current state of the canvas. 
+			* If you omit the last three params, it will draw a rectangle 
+			* outline with a 5 pixel border radius 
+			* @param {CanvasRenderingContext2D} ctx
+			* @param {Number} x The top left x coordinate
+			* @param {Number} y The top left y coordinate 
+			* @param {Number} width The width of the rectangle 
+			* @param {Number} height The height of the rectangle
+			* @param {Number} radius The corner radius. Defaults to 5;
+			* @param {Boolean} fill Whether to fill the rectangle. Defaults to false.
+			* @param {Boolean} stroke Whether to stroke the rectangle. Defaults to true.
+			*/
+			function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
+				//var ctx = document.getElementById("output").getContext("2d"); Delete?
+				if (typeof stroke == "undefined" ) {
+					stroke = true;
+				}
+				if (typeof radius === "undefined") {
+					radius = 5;
+				}
+				ctx.beginPath();
+				ctx.moveTo(x + radius, y);
+				ctx.lineTo(x + width - radius, y);
+				ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+				ctx.lineTo(x + width, y + height - radius);
+				ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+				ctx.lineTo(x + radius, y + height);
+				ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+				ctx.lineTo(x, y + radius);
+				ctx.quadraticCurveTo(x, y, x + radius, y);
+				ctx.closePath();
+				if (stroke) {
+					ctx.stroke();
+				}
+				if (fill) {
+					ctx.fill();
+				}			
+			}
+			
+			//Method called to 
+			/**
+			* @param {String} Colour of rectangle
+			*/
+			function redraw(colour) {
+				ctx.clearRect(0, 0, canvas.width, canvas.height);
+				ctx.strokeStyle = colour;
+				ctx.fillStyle = colour;
+				roundRect(ctx, 0, 0, 772, 72, 5, true, true);	 
+				if (achievementNameInput == "") {
+					 ctx.font="20px Verdana, sans-serif";
+					 ctx.fillStyle="#9DC34C";
+					 ctx.imageSmoothingEnabled= false
+					 ctx.fillText("Achievement Name",84,23);
+				 }
+				else {
+					 ctx.font="18px Verdana, sans-serif";
+					 ctx.fillStyle="#9DC34C";
+					 ctx.imageSmoothingEnabled= false
+					 ctx.fillText(achievementNameInput,84,23);
+				 }
+				if (achievementDescriptionInput == "") { 
+					ctx.font="bold 10px Verdana, sans-serif";
+					ctx.fillStyle="#C8B996";
+					ctx.fillText("Achivement Description",85,40);
+				}
+				else {
+					ctx.font="bold 10px Verdana, sans-serif";
+					ctx.fillStyle="#C8B996";
+					ctx.fillText(achievementDescriptionInput,85,40);
+				}
+			}
+			
+			function hs() {
+				console.log("hs() call");
+				refreshVariables();
+				if (achievementCompleteCheckbox.checked === false) {
+					fractionContainer.style.display = "inherit";
+					redraw("#373737");
+					pro();
 					
-				var num = document.getElementById("num").value;
-				var den = document.getElementById("den").value;
-				var length = Math.abs((num/den) * 301);
-				ctx.fillStyle="#1A1A1A";
-				ctx.fillRect(86,50,301,15);
-				ctx.fillStyle="#C8B996";
-				ctx.fillRect(86,50,length,15);
-				ctx.font="bold 10px Verdana, sans-serif";
-				ctx.fillStyle="#C8B996";
-				ctx.fillText(num+"/"+den,392,60);
-				document.getElementById("fraction").style.display = "inherit";
-				console.log("display");
-				console.log(document.getElementById("fraction")/*.style.display*/);
+				}
+				else {
+					/*
+					fractionContainer.style.display = "none";
+					*/
+					redraw("#4F4F4F");
+					pro();
 					
-			}
-			else
-			{
-				
-				document.getElementById("fraction").style.display = "none";
-				console.log("display1");
-				console.log(document.getElementById("fraction")/*.style.display*/);
-				
+				}
 				if (priority == 1) {
-				
-
+					
 					ctx.drawImage(primship,4,4,64,64);
-					console.log(primship);
-					console.log("primship");
-				
+					priority = 0;
+					
 				}
 				else {
-				
+					
 					preset(store);
-					console.log(store);
-					console.log("store");
-				
-				}
 					
-			}
-			
-		}
-		redraw("#373737");
-		function upload() {
-			
-			var file = document.getElementById("output").toDataURL("image/png");
-			var file1 = file.replace("data:image/png;base64,", "");
-			
-			console.log(file);
-			
-			var fd = new FormData();
-			fd.append("image", file1);
-			console.log(fd.value);
-			var xhr = new XMLHttpRequest(); 
-			xhr.open("POST", "https://api.imgur.com/3/image.json");
-			xhr.onload = function() {
-				
-				document.getElementById("linkoutput").href = JSON.parse(xhr.responseText).data.link;
-				document.getElementById("linkoutput").innerHTML = JSON.parse(xhr.responseText).data.link;
-				console.log(JSON.parse(xhr.responseText).data.link);
-				
-			}
-			
-			xhr.setRequestHeader("Authorization", "Client-ID 324c0b6899d6e55");
-			
-			xhr.send(fd);
-			
-			XMLHttpRequest.status
-		}
-		
-		var imageLoader = document.getElementById("dispimg");
-		imageLoader.addEventListener("change", handleImage, false);
-		var canvas = document.getElementById("output");
-		var ctx = canvas.getContext("2d");
-		var preimgtest = "abc";
-		
-		function handleImage(e){
-			
-			priority = 1;
-			var reader = new FileReader();
-			reader.onload = function(event){
-				var imagepreload = new Image();
-				imagepreload.onload = function(){
-						document.getElementById("testimg").src=imagepreload.src;
-						var primship = document.getElementById("testimg");
 				}
-				imagepreload.src = event.target.result;
-				preimgtest = imagepreload.src;
-			}
-			reader.readAsDataURL(e.target.files[0]);
-			//console.log(event.target.result);
-			var primship = document.getElementById("testimg");
-			console.log(primship);
-			ctx.drawImage(primship,4,4,64,64);
-			console.log("success");
-			updatetestimg();
-			hs();
-			
-		
-		}
-		
-		function handleImage1(file){
-			
-			priority = 1;
-			var reader = new FileReader();
-			reader.onload = function(event){
-				var imagepreload = new Image();
-				imagepreload.onload = function(){
-						document.getElementById("testimg").src=imagepreload.src;
-						var primship = document.getElementById("testimg");
-						ctx.drawImage(primship,4,4,64,64);
-				}
-				imagepreload.src = event.target.result;
-				preimgtest = imagepreload.src;
-			}
-			reader.readAsDataURL(file);
-			//console.log(event.target.result);
-			var primship = document.getElementById("testimg");
-			console.log(primship);
-			ctx.drawImage(primship,4,4,64,64);
-			console.log("success");
-			updatetestimg();
-			hs();
-			
-		
-		}
-		
 				
-		function preset(ele) {
+			}
 			
-			//console.log(ele);
-			//var id = ele;
-			
-			//primship = ele;
-			//var hatsoff = new Image;
-			//hatsoff.crossOrigin = "Anonymous";
-			//console.log(ele.src + " ele.src");
-			//hatsoff.src = ele.src;
-			//var canvas = document.getElementById("output");
-			//var ctx = canvas.getContext("2d");
-			//hs();
-			//ctx.drawImage(ele,4,4,64,64);
-			var img = new Image,
-			canvas = document.getElementById("output"),
-			ctx = canvas.getContext("2d"),
-			src = ele.src; // insert image url here
-			console.log(src);
+			function pro() {
+				
+				
+				if (progressBar.checked === true){
+						
+					var num = fractionNumeratorInput.value;
+					var den = fractionDenominatorInput.value;
+					var length = Math.abs((num/den) * 301);
+					ctx.fillStyle="#1A1A1A";
+					ctx.fillRect(86,50,301,15);
+					ctx.fillStyle="#C8B996";
+					ctx.fillRect(86,50,length,15);
+					ctx.font="bold 10px Verdana, sans-serif";
+					ctx.fillStyle="#C8B996";
+					ctx.fillText(num+"/"+den,392,60);
+					fractionContainer.style.display = "inherit";
+						
+				}
+				else
+				{
+					
+					fractionContainer.style.display = "none";
+					
+					if (priority == 1) {
+					
 
-			img.crossOrigin = "Anonymous";
-			if (document.getElementById("complete").checked === false) {
-				//document.getElementById("fraction").style.display = "inherit";
-				ctx.fillStyle = ("#373737");
-				ctx.fillRect(4,4,71,64);
-				console.log(ctx.fillStyle);
-				
-			}
-			else {
-				<!-- document.getElementById("fraction").style.display = "none"; -->
-				ctx.fillStyle = ("#4F4F4F");
-				ctx.fillRect(4,4,71,64);
-				console.log(ctx.fillStyle);
-				
-			}
-			img.onload = function() {
-				//canvas.width = img.width;
-				//canvas.height = img.height;
-				if (ele.id == "TauntTest") {
+						ctx.drawImage(primship,4,4,64,64);
+						priority = 0;
 					
-					ctx.drawImage(img, 16, 12, 59, 47);
+					}
+					else {
+					
+						preset(store);
+					
+					}
+						
+				}
+				
+			}
+			redraw("#373737");
+			function upload() {
+				
+				var file = document.getElementById("output").toDataURL("image/png");
+				var file1 = file.replace("data:image/png;base64,", "");
+				
+				
+				var fd = new FormData();
+				fd.append("image", file1);
+				var xhr = new XMLHttpRequest(); 
+				xhr.open("POST", "https://api.imgur.com/3/image.json");
+				xhr.onload = function() {
+					
+					uploadedImageLink.href = JSON.parse(xhr.responseText).data.link;
+					uploadedImageLink.innerHTML = JSON.parse(xhr.responseText).data.link;
 					
 				}
-				else {
-					
-					ctx.drawImage(img, 4, 4, 64, 64);
-					
-				}
-				//localStorage.setItem( "savedImageData", canvas.toDataURL("image/png") );
-			}
-			img.src = src;
-			// make sure the load event fires for cached images too
-			if ( img.complete || img.complete === undefined ) {
-				img.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
-				img.src = src;
-			}
-			primship = img;
-			
-		}
-		
-		function pretext(ele) {
-			
-			if (document.getElementById("ltext").checked === true) {
 				
-				console.log("pretext");
-				var prepro = ele.alt.match(/(.*?)\|/)[1];
-				console.log(prepro + " prepro");
-				document.getElementById("name").value = prepro;
-				var prepru = ele.alt.match(/\|(.*?)+/)[0];
-				prepru = prepru.replace("|", "");
-				document.getElementById("description").value = prepru;
-				console.log(prepru + " prepru");
+				xhr.setRequestHeader("Authorization", "Client-ID 324c0b6899d6e55");
+				
+				xhr.send(fd);
+				
+				XMLHttpRequest.status
+			}
+			
+			function handleImage(e){
+				
+				priority = 1;
+				var reader = new FileReader();
+				reader.onload = function(event){
+					var imagepreload = new Image();
+					imagepreload.onload = function(){
+							document.getElementById("testimg").src=imagepreload.src;
+							var primship = document.getElementById("testimg");
+					}
+					imagepreload.src = event.target.result;
+					preimgtest = imagepreload.src;
+				}
+				reader.readAsDataURL(e.target.files[0]);
+				var primship = document.getElementById("testimg");
+				ctx.drawImage(primship,4,4,64,64);
+				updatetestimg();
 				hs();
 				
+			
 			}
 			
-		}
-		
-		function toggleDisplay(ele) {
+			function handleImage1(file){
+				
+				priority = 1;
+				var reader = new FileReader();
+				reader.onload = function(event){
+					var imagepreload = new Image();
+					imagepreload.onload = function(){
+							document.getElementById("testimg").src=imagepreload.src;
+							var primship = document.getElementById("testimg");
+							ctx.drawImage(primship,4,4,64,64);
+					}
+					imagepreload.src = event.target.result;
+					preimgtest = imagepreload.src;
+				}
+				reader.readAsDataURL(file);
+				var primship = document.getElementById("testimg");
+				ctx.drawImage(primship,4,4,64,64);
+				updatetestimg();
+				hs();
+				
 			
-			var id = ele.id;
-			var id_ = id + "_";
-			console.log(document.getElementById(id_));
-			if (document.getElementById(id_).style.display == "none") {
-				
-				document.getElementById(id_).style.display = "inherit";
-				
 			}
-			else {
-				
-				document.getElementById(id_).style.display = "none";
-				
-			}
-			if (document.getElementById(id_).getAttribute("data-al") == 0) {
 			
-				document.getElementById(id_).setAttribute("data-al", "1");
+					
+			function preset(ele) {
 				
-				console.log("att");
+				//var id = ele;
 				
-				if (id_ == "StoneRabbit_") {
-					
-					console.l
-					document.getElementById("StoneRabbit_").innerHTML = '<img alt="" src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/1600.png" onclick="preset(this);pretext(this);store=this;priority=0;" />';
-					
-				}
+				//primship = ele;
+				//var hatsoff = new Image;
+				//hatsoff.crossOrigin = "Anonymous";
+				//hatsoff.src = ele.src;
+				//var canvas = document.getElementById("output");
+				//var ctx = canvas.getContext("2d");
+				//hs();
+				//ctx.drawImage(ele,4,4,64,64);
+				var str = ele.src;
+				var patt = new RegExp("imgur.com");
+				var res = patt.test(str);
 				
-				if (id_ == "ScoutAchievements_") {
-					
-					console.log(document.getElementById(id_).innerHTML);
-					var s = '<img src="http:\/\/i.imgur.com\/dVUo0Ra.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/xPN8F6k.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/bkHcacP.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/M7uWrsU.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/RfqkzOd.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/M5E5Z6y.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/w43K4pD.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/k5sx6qI.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/L8YXbr8.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/krUhZfs.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/BGGsr9Y.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/CSUbS0U.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/yXLwHnF.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/MfBxn1u.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/DfZL5jr.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/oO4tgyN.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/cCXnjXZ.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/dkB6mlv.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/f46DiXe.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/aGABVmY.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/F8niLov.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/ElGZD3S.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/A6LWn9c.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/xGqQvBi.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/2tmzL1Q.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/1ZEOKi3.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/MjnaN24.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/Ma9eS9G.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/SSmlzQL.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/v8HKjk0.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/JVSygBc.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/8EcWwpS.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/KCAD1Co.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/OLtcRVp.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/eeCR8eW.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/sv9omHn.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/Uy0GERM.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/5JE0P2c.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/5YPc4oA.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/kWBrM36.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/uZ8eQCs.png" onclick="preset(this);pretext(this);store=this;priority=0;" />';
-					document.getElementById(id_).innerHTML = s;
-					
-				}
-				if (id_ == "SoldierAchievements_") {
-					
-					document.getElementById(id_).innerHTML = '<img src="http:\/\/i.imgur.com\/MJn33Zv.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/PADjeUs.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/Cj1IeXc.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/vGZEL8b.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/50apc0P.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/7Ounq8V.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/wbLoo5N.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/a8V7L9Z.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/tG5Kcym.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/92YG9HS.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/M0dGydj.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/2AsQwWY.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/PkS4hDU.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/EaKYc1K.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/mWe3eAw.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/Lz0dSyW.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/4GxLPsp.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/YbnNYDt.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/fB4E6AD.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/FsCPQLL.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/kHL3LWu.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/8NqCbCU.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/RrCAl72.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/ursiyEQ.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/hlLMqQR.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/SpTsXoS.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/l7gY7Gm.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/46VCrfR.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/xTXByR0.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/nsOY1Mc.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/9xjMn9B.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/n1JXJsv.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/UxhVVb7.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/M09VdP8.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/vD4pNdv.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/H9iSBwT.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/dSJnZW6.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/W2IukAo.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/Ai2re61.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/FvPUMkX.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/XlTpkV7.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/y5hGqew.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/4XF0FhN.png" onclick="preset(this);pretext(this);store=this;priority=0;" />';
-					
-				}
-				if (id_ == "DemomanAchievements_") {
-					
-					document.getElementById(id_).innerHTML = '<img src="http:\/\/i.imgur.com\/PW8NlX6.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/ca8Ebzr.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/EUzY5SQ.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/xlEDOyp.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/skYt3xL.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/LL7zg3P.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/WwMeEBg.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/1Aar4Bm.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/p1d12Pi.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/8bcSDJR.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/4zdlIgv.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/dcQ1Isu.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/jgKxoNG.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/4pGJhJ3.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/wJJf4Dl.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/F3mIVCy.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/natW0Ix.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/IRI1xOJ.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/K0xjenT.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/6STCG8D.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/lFmZtsF.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/W87cDv9.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/2q5uAfU.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/jTnJM85.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/fOt4bIa.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/U5rJPUn.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/LuqdJem.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/ybXBUR1.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/DG4o9R9.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/Ai7v8uo.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/r8130yh.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/UnAKW5f.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/8sSQbUr.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/EfaZMnA.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/KTRLKhq.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/XuuxMAw.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/vWOI1lu.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/3DgBKmX.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/gZTtO0L.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/3ZZNqet.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/sgZg9Sb.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/lsrgPuJ.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/XWX0l8Y.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/ROYhLu0.png" onclick="preset(this);pretext(this);store=this;priority=0;" />';
-					
-				}
-				if (id_ == "MedicAchievements_") {
-					
-					document.getElementById(id_).innerHTML = '<img src="http:\/\/i.imgur.com\/4K4NsXW.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/pIf6BMu.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/kEVPH1q.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/bdU8rPu.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/2YR3Iah.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/meDBMWS.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/mm9GN7o.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/bedkbGJ.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/KkOLap6.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/I0x7Arf.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/IA1AC4L.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/DKI1Ha8.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/2Y4bjjW.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/kJsCego.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/8IuQwHR.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/2vcpcjf.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/vo2qdYu.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/baaGjcW.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/iFkYnVH.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/zLLaIjU.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/iqlEsUC.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/1zbipXq.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/5fdODY1.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/qivmJwg.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/DacG3tq.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/aJtv0pd.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/y6qN3FM.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/oPV4aNB.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/Z3Ftqux.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/pyolyfy.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/EnleaeX.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/GaTEftN.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/8eQEklZ.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/fpBR9mM.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/gkQ5rqK.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/36CFD7g.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/6SbxlGC.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/YsgbcnT.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/xG6GvZd.png" onclick="preset(this);pretext(this);store=this;priority=0;" />';
-					
-				}
-				if (id_ == "HeavyAchievements_") {
-					
-					document.getElementById(id_).innerHTML = '<img src="http:\/\/i.imgur.com\/FnD8zIy.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/skAzOml.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/aoiLHkP.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/gD9Xo4e.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/KVlMLHm.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/zk4P4GX.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/yx6uYxy.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/XoBoNFe.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/0nnAc5o.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/YLTinXw.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/M2d5UFq.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/wjsTn5j.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/iVrfyyV.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/T4uyaTb.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/24qlQSJ.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/yngWLhG.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/Mmor1t4.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/aVP94BE.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/pioPUpP.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/Rbhxuu6.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/ncIl4CE.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/zNO4i0I.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/nkEpxlF.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/bpmozRm.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/Ol8ePcj.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/miQKJ6A.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/X7o7Nod.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/EDLZRw6.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/JvnoVkT.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/9UT09BY.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/zWe7lXD.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/wnh5tC4.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/YjksDPq.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/aiaV49v.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/YtyfVVv.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/MqEsnub.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/SbcoL9t.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/Rrp5LqW.png" onclick="preset(this);pretext(this);store=this;priority=0;" />';
-					
-				}
-				if (id_ == "SniperAchievements_") {
-					
-					document.getElementById(id_).innerHTML = '<img src="http:\/\/i.imgur.com\/DwP7eAe.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/Lm7EESc.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/nUvN3fK.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/ZzmlAAE.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/2hxZApH.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/I8C9XxC.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/Z7nskUq.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/oRKfdUg.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/r4nHsKZ.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/Xmpyd7O.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/2EbLFSC.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/A5TQLzr.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/DDt4CYz.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/qE2HaHB.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/hL7mll9.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/gMhTVOZ.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/dOnO14J.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/cmKqJYZ.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/tSQsRZi.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/z9p0YBW.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/vX9Dzub.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/9XPVVfB.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/dr45drv.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/PCzuiqz.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/QVyQawI.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/PYSwpec.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/34XbkBM.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/fnxTgvU.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/pmRqbOM.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/U3yX45u.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/TCW2Z4l.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/qgbroRA.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/IeBNtJ0.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/7q1aFFm.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/7RxHjka.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/nXSXPB2.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/0tSydSa.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/GPHNTfm.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/TlFhFay.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/azJjn8o.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/jdzDxZX.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/Iklq8Ku.png" onclick="preset(this);pretext(this);store=this;priority=0;" />';
-					
-				}
-				if (id_ == "PyroAchievements_") {
-					
-					document.getElementById(id_).innerHTML = '<img src="http:\/\/i.imgur.com\/yOLGWqh.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/kHO4CHi.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/B9jvUyj.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/x6GAZ2q.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/PyXutR6.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/x7pRU51.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/VyMQ5kU.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/K63mx8w.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/jRsMNHF.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/aHNgmW7.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/Lao2x92.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/JJWucuD.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/pJSwN9K.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/r0O4ANb.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/5fkjjVM.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/7dhvWdB.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/vAsi5nZ.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/0Osfg6q.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/qH7eT5i.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/bNoVQaA.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/w0Weqgp.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/0aTyGQx.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/ZQEkS9z.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/oMG4R42.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/VNBLHyb.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/jLgbBAV.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/TCAXpUn.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/RPsSPN8.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/ssXkX30.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/TgM3fVT.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/D5quGPy.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/2rX0q5h.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/edXMN0e.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/Jm4nOgI.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/LP6Km4F.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/WGvK0zt.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/JVXdJcn.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/cpFcEQU.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/EuWpFEw.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/MXlob8v.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/PVX6V7C.png" onclick="preset(this);pretext(this);store=this;priority=0;" />';
-					
-				}
-				if (id_ == "EngineerAchievements_") {
-					
-					document.getElementById(id_).innerHTML = '<img src="http:\/\/i.imgur.com\/kmeS8v1.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/n3ePJ1D.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/yB8G7xe.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/h3Fq21b.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/wa7aSYV.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/00Fuqk5.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/Rq8rG5A.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/6QXyN08.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/zK6DWtE.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/0Pt4oMa.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/cuRM4eD.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/LTchMXT.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/nz3EUJG.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/nDmrz9X.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/bTswvXY.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/hSRP81Q.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/EYG9WSH.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/baV3rcI.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/yczCnCf.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/KbztZ8u.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/xYIldJg.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/5LqGKuP.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/998UB32.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/hfOZGiL.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/6Jkz15P.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/WEosmRj.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/2cLN4ny.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/rpOrpWg.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/pSM1aHe.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/w8dcVCR.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/qq9sYKU.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/ghmJ4tV.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/7o4EqmR.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/E7xMW8O.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/WackSnW.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/rlhSFcr.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/ncaIxSz.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/vVibbR3.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" />';
-					
-				}
-				if (id_ == "SpyAchievements_") {
-					
-					document.getElementById(id_).innerHTML = '<img src="http:\/\/i.imgur.com\/mTdU19L.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/D0s49Ey.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/ZtB7IqQ.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/Z6sTBmd.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/NouHfq1.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/kETgzFe.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/hV2uidV.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/KdGP2a1.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/b39Gv8V.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/TYlfpzQ.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/tWUmuAJ.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/mH3SMmW.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/sUbn1Nb.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/XRP68aj.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/9iyIE9a.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/VsauC69.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/2Zve2kt.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/eH0PGKr.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/0BmfmX5.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/F0xgvnl.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/csoHZaN.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/LaihpoT.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/l2kIpzx.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/5BMWReB.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/2HXS0xF.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/TNuxeip.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/HPsTAFt.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/nw5gjAh.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/AQKvcfv.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/5WHrWLQ.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/Yqyudzo.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/iuT3zra.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/578aGVD.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/6Tx27XE.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/91ETWiH.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/rGxEJq3.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/JqKyS55.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/hUcb73j.png" onclick="preset(this);pretext(this);store=this;priority=0;" />';
-					
-				}
-				if (id_ == "GeneralAchievements_") {
-					
-					document.getElementById(id_).innerHTML = '<img src="http:\/\/i.imgur.com\/IuTbcwA.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/1lBhPtp.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/rkm3V8B.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/0AVhsln.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/dnRHYPY.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/alXVjfZ.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/7bkLr2K.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/FQk8XpO.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/N8JMRrd.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/ERQuzeh.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/K8Qxj6j.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/msh23HS.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/xJCHP3o.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/3GE9yqB.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/aMWS9mT.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/nFlpNib.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/XxQMW8T.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/dFtgdiQ.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/IRTWA6u.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/fBRSt5l.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/ZVL0v78.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/qNE8UO9.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/5eTjbeZ.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/JgfH4oi.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/JJMl2Lg.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/BbnG7vA.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/IiEvzPr.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/PiP86cD.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/O1ua02H.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/CuWcOld.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/SCQHMYI.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/rEg4JMm.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/GhkQxDn.png" onclick="preset(this);pretext(this);store=this;priority=0;" />';
-					
-				}
-				if (id_ == "EventAchievements_") {
-					
-					document.getElementById(id_).innerHTML = '<img src="http:\/\/i.imgur.com\/QH8ePem.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/3fFhwNH.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/49EFieh.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/vCrigx6.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/I5KJAzc.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/8384ZZl.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/nJkFan3.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/d25evCG.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/7ykZeWb.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/uo5IvmE.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/mLUwyGx.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/eRBKkEO.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/vKrZQeJ.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/lefYw01.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/j1fOgXf.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/o1l45tE.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/GmvdsqR.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/yp3PoiE.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/wkk15sn.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/YRMdX05.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/lkflMpE.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/02LW3Rm.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/7G5x4s7.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/zYsohwg.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/i4RYFad.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/bfTy2fy.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/aPIiKCP.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/kAn5tBI.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/NaZgb4H.png" onclick="preset(this);pretext(this);store=this;priority=0;" />';
+				if (res === true) {
+					var img = new Image,
+					canvas = document.getElementById("output"),
+					ctx = canvas.getContext("2d"),
+					canvas64 = document.getElementById("imageToBase64"),
+					ctx64 = canvas64.getContext("2d"),
+					src = ele.src; // insert image url here
 
-					
+					img.crossOrigin = "Anonymous";
+					if (achievementCompleteCheckbox.checked === false) {
+						//fractionContainer.style.display = "inherit";
+						ctx.fillStyle = ("#373737");
+						ctx.fillRect(4,4,71,64);
+						
+					}
+					else {
+						<!-- fractionContainer.style.display = "none"; -->
+						ctx.fillStyle = ("#4F4F4F");
+						ctx.fillRect(4,4,71,64);
+						
+					}
+					img.onload = function() {
+						//canvas.width = img.width;
+						//canvas.height = img.height;
+						if (ele.id == "TauntTest") {
+							
+							ctx.drawImage(img, 16, 12, 59, 47);
+							
+						}
+						else {
+							
+							ctx.drawImage(img, 4, 4, 64, 64);
+							
+						}
+						localStorage.setItem( "savedImageData", canvas.toDataURL("image/png") );
+						
+						// Produce a base64 string from "img" and set ele's src to that 
+						canvas64.width = img.width;
+						canvas64.height = img.height;
+						ctx64.drawImage(img, 0, 0);
+						ele.src = canvas64.toDataURL("image/png");
+						console.log(canvas64.toDataURL("image/png"));
+					}
+					img.src = src;
+					// make sure the load event fires for cached images too
+					if ( img.complete || img.complete === undefined ) {
+						img.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
+						img.src = src;
+					}
+					primship = img;
 				}
-				if (id_ == "ReplayAchievements_") {
-					
-					document.getElementById(id_).innerHTML = '<img src="http:\/\/i.imgur.com\/K5dtpGZ.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/56bEEyq.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/MxFI4t4.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/d0QYEkm.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/SXIqQJK.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/Jk2rKcT.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/derhnQ8.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/bpE6sWk.png" onclick="preset(this);pretext(this);store=this;priority=0;" />';
-					
+				else {
+					console.log("Or else");
+					canvas = document.getElementById("output"),
+					ctx = canvas.getContext("2d");
+					if (ele.id == "TauntTest") {
+						
+						ctx.drawImage(ele, 16, 12, 59, 47);
+						
+					}
+					else {
+						
+						ctx.drawImage(ele, 4, 4, 64, 64);
+						
+					}
 				}
-				if (id_ == "MannvsMachievements_") {
+			}
+			
+			function pretext(ele) {
+				
+				if (document.getElementById("ltext").checked === true) {
 					
-					document.getElementById(id_).innerHTML = '<img src="http:\/\/i.imgur.com\/McoCjxA.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/DrrtBvg.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/CFHa9Bb.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/q8lvNKW.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/K51bY6A.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/dRqzYLA.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/CcJhFyW.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/53DwAe0.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/EPYG5ve.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/eXFvRBm.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/1Lkhz3s.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/FZOuK12.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/sfBRmpv.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/Ixn2RO1.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/LJLxXBZ.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/v6aEEq7.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/pGsQQbO.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/FBFSqsR.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/RCtN0FO.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/6qL0aHq.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/wku5mA7.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/YU3KJYw.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/joJUYBg.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/x1EUgsG.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/XdZuTII.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/klr6Ylc.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/drXGX9O.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/rS8CqyJ.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/03asVOH.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/ft1a3fL.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/jvszY2m.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/YrPB8kx.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/Z0tFwer.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/q7TG3OF.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/jKXOOqp.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/48Usn2t.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/xzxOB9W.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/hsmACDj.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/EFbeNps.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/Owhs5sl.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/MuUlf73.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/AnCjMK6.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/kaRI2Sv.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/arqau6p.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/ngSXtpO.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/YlkI7X1.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/sj1icxH.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/nzy3NeG.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/WZKSpb3.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" />';
-					
-				}
-				if (id_ == "JokeAchievements_") {
-					
-					document.getElementById(id_).innerHTML = '<img src="http:\/\/i.imgur.com\/Hrcckpi.png" alt="Welcome to the Internets|Fail to understand what \'Private\' means on YouTube." onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/7r2E09E.png" alt="Fake an email from Robin|At a most opportune time, use Photoshop to fool innocents into thinking you received a cryptic reply from Robin." onclick="preset(this);pretext(this);store=this;priority=0;" />';
-					
-				}
-				if (id_ == "MapAchievements_") {
-					
-					document.getElementById(id_).innerHTML = '<img src="http:\/\/i.imgur.com\/ENEGdEp.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/ahHnBju.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/0Lab5oN.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/MoyqvoC.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/Shmde4H.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/hXJJU7w.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/mKZRWSK.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/P8gdjDL.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/LhaKDDC.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/AB4Cpfg.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/z9Lknrz.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/erwN3g6.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/doj10j3.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/RsnliLR.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/DY1HLb7.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/oPCqUy9.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/OeBEYv9.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/OV6haeC.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/OPTWwmI.png" onclick="preset(this);pretext(this);store=this;priority=0;" />';
-					
-				}
-				if (id_ == "TauntIcons_") {
-					
-					document.getElementById(id_).innerHTML = '<img src="http:\/\/i.imgur.com\/dLmvqQ4.png" onclick="preset(this);store=this;priority=0;" id="TauntTest" /><img src="http:\/\/i.imgur.com\/C30skp7.png" onclick="preset(this);store=this;priority=0;" id="TauntTest" /><img src="http:\/\/i.imgur.com\/mOMjzyN.png" onclick="preset(this);store=this;priority=0;" id="TauntTest" /><img src="http:\/\/i.imgur.com\/K96sd2W.png" onclick="preset(this);store=this;priority=0;" id="TauntTest" /><img src="http:\/\/i.imgur.com\/Or7FnoU.png" onclick="preset(this);store=this;priority=0;" id="TauntTest" /><img src="http:\/\/i.imgur.com\/5o1dSlm.png" onclick="preset(this);store=this;priority=0;" id="TauntTest" /><img src="http:\/\/i.imgur.com\/1BCsP1P.png" onclick="preset(this);store=this;priority=0;" id="TauntTest" /><img src="http:\/\/i.imgur.com\/aPGpZm7.png" onclick="preset(this);store=this;priority=0;" id="TauntTest" /><img src="http:\/\/i.imgur.com\/sLf9Bro.png" onclick="preset(this);store=this;priority=0;" id="TauntTest" /><img src="http:\/\/i.imgur.com\/A2I9sfk.png" onclick="preset(this);store=this;priority=0;" id="TauntTest" /><img src="http:\/\/i.imgur.com\/cSoO1jg.png" onclick="preset(this);store=this;priority=0;" id="TauntTest" /><img src="http:\/\/i.imgur.com\/kVxpY1W.png" onclick="preset(this);store=this;priority=0;" id="TauntTest" /><img src="http:\/\/i.imgur.com\/ZkxfIe6.png" onclick="preset(this);store=this;priority=0;" id="TauntTest" /><img src="http:\/\/i.imgur.com\/lKgtTGi.png" onclick="preset(this);store=this;priority=0;" id="TauntTest" /><img src="http:\/\/i.imgur.com\/QlFfA2C.png" onclick="preset(this);store=this;priority=0;" id="TauntTest" /><img src="http:\/\/i.imgur.com\/JpeTy30.png" onclick="preset(this);store=this;priority=0;" id="TauntTest" /><img src="http:\/\/i.imgur.com\/5PoubHC.png" onclick="preset(this);store=this;priority=0;" id="TauntTest" /><img src="http:\/\/i.imgur.com\/j6c263Y.png" onclick="preset(this);store=this;priority=0;" id="TauntTest" /><img src="http:\/\/i.imgur.com\/w4BaraI.png" onclick="preset(this);store=this;priority=0;" id="TauntTest" /><img src="http:\/\/i.imgur.com\/TUrLgGa.png" onclick="preset(this);store=this;priority=0;" id="TauntTest" />';
+					var prepro = ele.alt.match(/(.*?)\|/)[1];
+					document.getElementById("name").value = prepro;
+					var prepru = ele.alt.match(/\|(.*?)+/)[0];
+					prepru = prepru.replace("|", "");
+					document.getElementById("description").value = prepru;
+					hs();
 					
 				}
 				
-				if (id_ == "TF2FR_") {
+			}
+			
+			function toggleDisplay(ele) {
+				
+				var id = ele.id;
+				var id_ = id + "_";
+				if (document.getElementById(id_).style.display == "none") {
 					
-					document.getElementById(id_).innerHTML = '<blockquote><button type="button" id="Foliok" onclick="toggleDisplay(this);">Foliok</button><div id="Foliok_" style="display:none;width:772px;margin-left:auto;margin-right:auto;" data-al="0"></div><br /><button type="button" id="Deleted" onclick="toggleDisplay(this);">Deleted</button><div id="Deleted_" style="display:none;width:772px;margin-left:auto;margin-right:auto;" data-al="0"></div><br /><button type="button" id="Seringue" onclick="toggleDisplay(this);">Seringue</button><div id="Seringue_" style="display:none;width:772px;margin-left:auto;margin-right:auto;" data-al="0"></div><br /><button type="button" id="StoneRabbit" onclick="toggleDisplay(this);">StoneRabbit</button><div id="StoneRabbit_" style="display:none;width:772px;margin-left:auto;margin-right:auto;" data-al="0"></div><br /><button type="button" id="Toxicow" onclick="toggleDisplay(this);">Toxicow</button><div id="Toxicow_" style="display:none;width:772px;margin-left:auto;margin-right:auto;" data-al="0"></div><br /><button type="button" id="Zippy" onclick="toggleDisplay(this);">Zippy (Fake Soldier Update)</button><div id="Zippy_" style="display:none;width:772px;margin-left:auto;margin-right:auto;" data-al="0"></div><br /><button type="button" id="Other" onclick="toggleDisplay(this);">Other</button><div id="Other_" style="display:none;width:772px;margin-left:auto;margin-right:auto;" data-al="0"></div><br /><button type="button" id="SoftRetouches" onclick="toggleDisplay(this);">Soft Retouches</button><div id="SoftRetouches_" style="display:none;width:772px;margin-left:auto;margin-right:auto;" data-al="0"></div><br /></blockquote>';
+					document.getElementById(id_).style.display = "inherit";
 					
 				}
-				
-				if (id_ == "Deleted_") {
+				else {
 					
-					document.getElementById(id_).innerHTML = '<img src="http://i.imgur.com/HiB2plb.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/XKuqYuZ.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/8bOvjvw.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/mxQIXIb.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/wgYYxkP.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/OZogejc.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/r3j4xOW.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/Aon9TZb.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/qox84JU.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/G8SEWjm.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/c2EkC8l.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/bGXuhXx.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/1tPod5L.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/Vhmfm5n.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/SAdzq2I.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/c5y83fw.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/aiqMOd9.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/BUPMGqq.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/nuApsQI.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/ZNqfMhu.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/yhs7e3n.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/dzFsxi3.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/DMzGH34.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/owxrn1A.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/5CXiulM.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/ckQ4D2Y.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/WJpC4E2.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/DMLyhC6.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/A3UnjW0.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/WIZCNVr.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/trMmjQ0.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/MmZjaps.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/btVdZ0F.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/qvxnrA9.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/8zo4wMH.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/HdVZSIV.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/VxTbn9x.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/YkCuVfN.png" onclick="preset(this);pretext(this);store=this;priority=0;" />';
-					
-				}
-				
-				if (id_ == "Foliok_") {
-					
-					document.getElementById(id_).innerHTML = '<img src="http://i.imgur.com/9oyFZTc.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/R3U1dQJ.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/5VakKy9.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/oEr6pg5.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/t4be1HD.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/dh85eND.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/4HL37Om.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/WmqoOnE.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/UJKtR2I.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/opKmeUr.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/Sl3VS0D.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/1eBJ9UN.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/2meAsji.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/IvRWNo8.png" onclick="preset(this);pretext(this);store=this;priority=0;" />';
+					document.getElementById(id_).style.display = "none";
 					
 				}
+				if (document.getElementById(id_).getAttribute("data-al") == 0) {
 				
-				if (id_ == "Other_") {
+					document.getElementById(id_).setAttribute("data-al", "1");
 					
-					document.getElementById(id_).innerHTML = '<p>FullGtO, Schafi, Siquall, Slade, Doktor Zacbru, Soupalonion, and others... </p><br /><img src="http://i.imgur.com/eh0gyUk.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/z91zgcL.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/DWscDM4.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/xehJiIT.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/eKiMeS5.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/IPPlmsk.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/3XSclto.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/9jA2aIQ.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/JXO2e6V.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/BDgDmPQ.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/CAGD6zd.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/lCQxPk1.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/TWKhZbJ.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/HHbovfh.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/dhpaxGb.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/v4Tmo8f.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/25kpmYw.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/JMKEdCi.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/rG8nkWf.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/lTJyfEa.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/7LS7D8x.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/IVr5Mxw.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/gq2YVQp.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/yW0KI6c.png" onclick="preset(this);pretext(this);store=this;priority=0;" />';
 					
-				}
-				
-				if (id_ == "Seringue_") {
+					if (id_ == "StoneRabbit_") {
+						
+						console.l
+						document.getElementById("StoneRabbit_").innerHTML = '<img alt="" src="http://web.archive.org/web/20110911143259/http://teamfortress2.fr/images/logos/new/1600.png" onclick="preset(this);pretext(this);store=this;priority=0;" />';
+						
+					}
 					
-					document.getElementById(id_).innerHTML = '<img src="http://i.imgur.com/QDIRfyd.jpg"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/N5FDIuP.png"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/dcNsFBd.png"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/XZJemq1.png"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/KpdXkHw.png"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/j2LWRAc.png"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/7G40fY1.jpg"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/TYYXKQh.png"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/TQNceSb.jpg"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/WGk8Yqi.png"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/vlCEr4K.jpg"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/nvhMMKl.png"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/d6nhdJC.jpg"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/sHNgbBI.png"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/55uJ2RP.jpg"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/VbJ1naI.png"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/h0yOQ4T.jpg"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/QIJ5dkZ.png"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/vOj4ghE.jpg"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/7n3lBVU.png"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/8bXSbOc.jpg"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/tX92YIq.png"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/7MYn8JC.jpg"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/kXVpyM6.png"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/l2M1g4h.jpg"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/O9SVN6H.png" />';
-					
-				}
-				
-				if (id_ == "StoneRabbit_") {
-					
-					document.getElementById(id_).innerHTML = '<img src="http://i.imgur.com/dQ6ihNu.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/riULI0b.jpg"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/XtceBWX.png"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/KzVkcIG.jpg"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/e0lI9Bg.png"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/O9AtzCm.jpg"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/nspjYEY.png"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/9kSa615.jpg"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/dBerI5G.png"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/8LzjoJ0.jpg"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/OTFAbMT.png"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/snANxpK.jpg"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/HekuOJy.png"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/vW5gFhC.jpg"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/lwIfsMq.png"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/tnwbZje.jpg"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/mq7IfyE.png"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/UVo21CF.jpg"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/qBIU0DF.jpg"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/gGkaxwz.jpg"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/TEH1KOX.jpg"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/cEwuIkn.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" />';
-					
-				}
-				
-				if (id_ == "Toxicow_") {
-					
-					document.getElementById(id_).innerHTML = '<img src="http://i.imgur.com/Pqgik4Y.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/cd6sLw0.gif" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/XXMZEX0.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/P1oArtH.gif" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/v7weHti.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/NtFpIh2.gif" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/W4K8p6F.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/dXLIutA.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/qjf75sl.gif" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/GWbkL34.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/oyRRXvK.gif" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/MVtah25.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/jvGNB4l.gif" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/insmpjC.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/mR3GdpX.gif" onclick="preset(this);pretext(this);store=this;priority=0;" />';
-					
-				}
-				
-				if (id_ == "Zippy_") {
-					
-					document.getElementById(id_).innerHTML = '<img src="http://i.imgur.com/kOxG1Qn.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/GWSbxBh.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/OAU9nd8.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/GcfdPML.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/ycwYPwn.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/RlSP5L4.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/yiUnbTU.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/aoKzfat.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/mQosRai.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/Lgy5Ykv.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/nscD3vC.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/7Y51RjI.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/OiQa5Vw.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/8D5Pvyl.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/Kekt8gC.png" onclick="preset(this);pretext(this);store=this;priority=0;" />';
+					if (id_ == "ScoutAchievements_") {
+						
+						var s = '<img src="http:\/\/i.imgur.com\/dVUo0Ra.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/xPN8F6k.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/bkHcacP.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/M7uWrsU.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/RfqkzOd.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/M5E5Z6y.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/w43K4pD.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/k5sx6qI.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/L8YXbr8.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/krUhZfs.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/BGGsr9Y.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/CSUbS0U.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/yXLwHnF.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/MfBxn1u.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/DfZL5jr.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/oO4tgyN.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/cCXnjXZ.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/dkB6mlv.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/f46DiXe.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/aGABVmY.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/F8niLov.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/ElGZD3S.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/A6LWn9c.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/xGqQvBi.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/2tmzL1Q.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/1ZEOKi3.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/MjnaN24.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/Ma9eS9G.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/SSmlzQL.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/v8HKjk0.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/JVSygBc.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/8EcWwpS.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/KCAD1Co.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/OLtcRVp.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/eeCR8eW.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/sv9omHn.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/Uy0GERM.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/5JE0P2c.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/5YPc4oA.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/kWBrM36.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/uZ8eQCs.png" onclick="preset(this);pretext(this);store=this;priority=0;" />';
+						document.getElementById(id_).innerHTML = s;
+						
+					}
+					if (id_ == "SoldierAchievements_") {
+						
+						document.getElementById(id_).innerHTML = '<img src="http:\/\/i.imgur.com\/MJn33Zv.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/PADjeUs.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/Cj1IeXc.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/vGZEL8b.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/50apc0P.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/7Ounq8V.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/wbLoo5N.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/a8V7L9Z.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/tG5Kcym.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/92YG9HS.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/M0dGydj.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/2AsQwWY.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/PkS4hDU.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/EaKYc1K.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/mWe3eAw.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/Lz0dSyW.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/4GxLPsp.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/YbnNYDt.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/fB4E6AD.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/FsCPQLL.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/kHL3LWu.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/8NqCbCU.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/RrCAl72.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/ursiyEQ.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/hlLMqQR.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/SpTsXoS.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/l7gY7Gm.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/46VCrfR.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/xTXByR0.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/nsOY1Mc.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/9xjMn9B.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/n1JXJsv.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/UxhVVb7.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/M09VdP8.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/vD4pNdv.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/H9iSBwT.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/dSJnZW6.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/W2IukAo.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/Ai2re61.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/FvPUMkX.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/XlTpkV7.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/y5hGqew.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/4XF0FhN.png" onclick="preset(this);pretext(this);store=this;priority=0;" />';
+						
+					}
+					if (id_ == "DemomanAchievements_") {
+						
+						document.getElementById(id_).innerHTML = '<img src="http:\/\/i.imgur.com\/PW8NlX6.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/ca8Ebzr.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/EUzY5SQ.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/xlEDOyp.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/skYt3xL.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/LL7zg3P.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/WwMeEBg.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/1Aar4Bm.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/p1d12Pi.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/8bcSDJR.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/4zdlIgv.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/dcQ1Isu.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/jgKxoNG.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/4pGJhJ3.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/wJJf4Dl.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/F3mIVCy.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/natW0Ix.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/IRI1xOJ.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/K0xjenT.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/6STCG8D.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/lFmZtsF.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/W87cDv9.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/2q5uAfU.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/jTnJM85.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/fOt4bIa.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/U5rJPUn.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/LuqdJem.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/ybXBUR1.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/DG4o9R9.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/Ai7v8uo.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/r8130yh.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/UnAKW5f.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/8sSQbUr.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/EfaZMnA.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/KTRLKhq.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/XuuxMAw.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/vWOI1lu.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/3DgBKmX.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/gZTtO0L.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/3ZZNqet.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/sgZg9Sb.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/lsrgPuJ.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/XWX0l8Y.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/ROYhLu0.png" onclick="preset(this);pretext(this);store=this;priority=0;" />';
+						
+					}
+					if (id_ == "MedicAchievements_") {
+						
+						document.getElementById(id_).innerHTML = '<img src="http:\/\/i.imgur.com\/4K4NsXW.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/pIf6BMu.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/kEVPH1q.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/bdU8rPu.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/2YR3Iah.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/meDBMWS.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/mm9GN7o.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/bedkbGJ.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/KkOLap6.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/I0x7Arf.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/IA1AC4L.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/DKI1Ha8.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/2Y4bjjW.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/kJsCego.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/8IuQwHR.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/2vcpcjf.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/vo2qdYu.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/baaGjcW.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/iFkYnVH.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/zLLaIjU.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/iqlEsUC.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/1zbipXq.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/5fdODY1.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/qivmJwg.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/DacG3tq.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/aJtv0pd.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/y6qN3FM.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/oPV4aNB.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/Z3Ftqux.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/pyolyfy.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/EnleaeX.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/GaTEftN.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/8eQEklZ.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/fpBR9mM.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/gkQ5rqK.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/36CFD7g.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/6SbxlGC.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/YsgbcnT.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/xG6GvZd.png" onclick="preset(this);pretext(this);store=this;priority=0;" />';
+						
+					}
+					if (id_ == "HeavyAchievements_") {
+						
+						document.getElementById(id_).innerHTML = '<img src="http:\/\/i.imgur.com\/FnD8zIy.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/skAzOml.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/aoiLHkP.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/gD9Xo4e.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/KVlMLHm.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/zk4P4GX.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/yx6uYxy.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/XoBoNFe.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/0nnAc5o.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/YLTinXw.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/M2d5UFq.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/wjsTn5j.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/iVrfyyV.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/T4uyaTb.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/24qlQSJ.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/yngWLhG.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/Mmor1t4.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/aVP94BE.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/pioPUpP.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/Rbhxuu6.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/ncIl4CE.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/zNO4i0I.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/nkEpxlF.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/bpmozRm.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/Ol8ePcj.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/miQKJ6A.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/X7o7Nod.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/EDLZRw6.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/JvnoVkT.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/9UT09BY.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/zWe7lXD.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/wnh5tC4.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/YjksDPq.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/aiaV49v.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/YtyfVVv.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/MqEsnub.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/SbcoL9t.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/Rrp5LqW.png" onclick="preset(this);pretext(this);store=this;priority=0;" />';
+						
+					}
+					if (id_ == "SniperAchievements_") {
+						
+						document.getElementById(id_).innerHTML = '<img src="http:\/\/i.imgur.com\/DwP7eAe.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/Lm7EESc.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/nUvN3fK.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/ZzmlAAE.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/2hxZApH.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/I8C9XxC.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/Z7nskUq.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/oRKfdUg.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/r4nHsKZ.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/Xmpyd7O.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/2EbLFSC.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/A5TQLzr.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/DDt4CYz.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/qE2HaHB.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/hL7mll9.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/gMhTVOZ.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/dOnO14J.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/cmKqJYZ.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/tSQsRZi.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/z9p0YBW.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/vX9Dzub.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/9XPVVfB.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/dr45drv.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/PCzuiqz.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/QVyQawI.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/PYSwpec.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/34XbkBM.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/fnxTgvU.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/pmRqbOM.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/U3yX45u.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/TCW2Z4l.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/qgbroRA.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/IeBNtJ0.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/7q1aFFm.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/7RxHjka.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/nXSXPB2.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/0tSydSa.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/GPHNTfm.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/TlFhFay.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/azJjn8o.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/jdzDxZX.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/Iklq8Ku.png" onclick="preset(this);pretext(this);store=this;priority=0;" />';
+						
+					}
+					if (id_ == "PyroAchievements_") {
+						
+						document.getElementById(id_).innerHTML = '<img src="http:\/\/i.imgur.com\/yOLGWqh.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/kHO4CHi.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/B9jvUyj.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/x6GAZ2q.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/PyXutR6.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/x7pRU51.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/VyMQ5kU.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/K63mx8w.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/jRsMNHF.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/aHNgmW7.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/Lao2x92.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/JJWucuD.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/pJSwN9K.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/r0O4ANb.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/5fkjjVM.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/7dhvWdB.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/vAsi5nZ.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/0Osfg6q.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/qH7eT5i.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/bNoVQaA.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/w0Weqgp.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/0aTyGQx.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/ZQEkS9z.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/oMG4R42.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/VNBLHyb.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/jLgbBAV.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/TCAXpUn.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/RPsSPN8.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/ssXkX30.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/TgM3fVT.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/D5quGPy.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/2rX0q5h.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/edXMN0e.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/Jm4nOgI.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/LP6Km4F.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/WGvK0zt.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/JVXdJcn.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/cpFcEQU.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/EuWpFEw.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/MXlob8v.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/PVX6V7C.png" onclick="preset(this);pretext(this);store=this;priority=0;" />';
+						
+					}
+					if (id_ == "EngineerAchievements_") {
+						
+						document.getElementById(id_).innerHTML = '<img src="http:\/\/i.imgur.com\/kmeS8v1.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/n3ePJ1D.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/yB8G7xe.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/h3Fq21b.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/wa7aSYV.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/00Fuqk5.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/Rq8rG5A.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/6QXyN08.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/zK6DWtE.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/0Pt4oMa.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/cuRM4eD.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/LTchMXT.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/nz3EUJG.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/nDmrz9X.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/bTswvXY.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/hSRP81Q.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/EYG9WSH.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/baV3rcI.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/yczCnCf.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/KbztZ8u.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/xYIldJg.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/5LqGKuP.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/998UB32.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/hfOZGiL.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/6Jkz15P.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/WEosmRj.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/2cLN4ny.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/rpOrpWg.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/pSM1aHe.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/w8dcVCR.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/qq9sYKU.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/ghmJ4tV.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/7o4EqmR.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/E7xMW8O.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/WackSnW.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/rlhSFcr.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/ncaIxSz.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/vVibbR3.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" />';
+						
+					}
+					if (id_ == "SpyAchievements_") {
+						
+						document.getElementById(id_).innerHTML = '<img src="http:\/\/i.imgur.com\/mTdU19L.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/D0s49Ey.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/ZtB7IqQ.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/Z6sTBmd.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/NouHfq1.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/kETgzFe.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/hV2uidV.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/KdGP2a1.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/b39Gv8V.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/TYlfpzQ.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/tWUmuAJ.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/mH3SMmW.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/sUbn1Nb.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/XRP68aj.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/9iyIE9a.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/VsauC69.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/2Zve2kt.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/eH0PGKr.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/0BmfmX5.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/F0xgvnl.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/csoHZaN.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/LaihpoT.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/l2kIpzx.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/5BMWReB.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/2HXS0xF.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/TNuxeip.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/HPsTAFt.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/nw5gjAh.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/AQKvcfv.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/5WHrWLQ.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/Yqyudzo.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/iuT3zra.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/578aGVD.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/6Tx27XE.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/91ETWiH.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/rGxEJq3.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/JqKyS55.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/hUcb73j.png" onclick="preset(this);pretext(this);store=this;priority=0;" />';
+						
+					}
+					if (id_ == "GeneralAchievements_") {
+						
+						document.getElementById(id_).innerHTML = '<img src="http:\/\/i.imgur.com\/IuTbcwA.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/1lBhPtp.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/rkm3V8B.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/0AVhsln.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/dnRHYPY.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/alXVjfZ.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/7bkLr2K.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/FQk8XpO.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/N8JMRrd.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/ERQuzeh.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/K8Qxj6j.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/msh23HS.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/xJCHP3o.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/3GE9yqB.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/aMWS9mT.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/nFlpNib.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/XxQMW8T.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/dFtgdiQ.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/IRTWA6u.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/fBRSt5l.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/ZVL0v78.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/qNE8UO9.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/5eTjbeZ.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/JgfH4oi.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/JJMl2Lg.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/BbnG7vA.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/IiEvzPr.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/PiP86cD.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/O1ua02H.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/CuWcOld.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/SCQHMYI.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/rEg4JMm.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/GhkQxDn.png" onclick="preset(this);pretext(this);store=this;priority=0;" />';
+						
+					}
+					if (id_ == "EventAchievements_") {
+						
+						document.getElementById(id_).innerHTML = '<img src="http:\/\/i.imgur.com\/QH8ePem.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/3fFhwNH.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/49EFieh.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/vCrigx6.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/I5KJAzc.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/8384ZZl.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/nJkFan3.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/d25evCG.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/7ykZeWb.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/uo5IvmE.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/mLUwyGx.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/eRBKkEO.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/vKrZQeJ.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/lefYw01.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/j1fOgXf.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/o1l45tE.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/GmvdsqR.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/yp3PoiE.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/wkk15sn.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/YRMdX05.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/lkflMpE.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/02LW3Rm.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/7G5x4s7.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/zYsohwg.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/i4RYFad.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/bfTy2fy.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/aPIiKCP.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/kAn5tBI.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/NaZgb4H.png" onclick="preset(this);pretext(this);store=this;priority=0;" />';
 
+						
+					}
+					if (id_ == "ReplayAchievements_") {
+						
+						document.getElementById(id_).innerHTML = '<img src="http:\/\/i.imgur.com\/K5dtpGZ.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/56bEEyq.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/MxFI4t4.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/d0QYEkm.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/SXIqQJK.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/Jk2rKcT.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/derhnQ8.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/bpE6sWk.png" onclick="preset(this);pretext(this);store=this;priority=0;" />';
+						
+					}
+					if (id_ == "MannvsMachievements_") {
+						
+						document.getElementById(id_).innerHTML = '<img src="http:\/\/i.imgur.com\/McoCjxA.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/DrrtBvg.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/CFHa9Bb.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/q8lvNKW.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/K51bY6A.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/dRqzYLA.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/CcJhFyW.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/53DwAe0.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/EPYG5ve.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/eXFvRBm.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/1Lkhz3s.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/FZOuK12.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/sfBRmpv.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/Ixn2RO1.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/LJLxXBZ.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/v6aEEq7.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/pGsQQbO.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/FBFSqsR.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/RCtN0FO.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/6qL0aHq.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/wku5mA7.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/YU3KJYw.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/joJUYBg.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/x1EUgsG.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/XdZuTII.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/klr6Ylc.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/drXGX9O.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/rS8CqyJ.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/03asVOH.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/ft1a3fL.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/jvszY2m.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/YrPB8kx.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/Z0tFwer.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/q7TG3OF.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/jKXOOqp.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/48Usn2t.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/xzxOB9W.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/hsmACDj.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/EFbeNps.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/Owhs5sl.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/MuUlf73.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/AnCjMK6.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/kaRI2Sv.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/arqau6p.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/ngSXtpO.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/YlkI7X1.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/sj1icxH.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/nzy3NeG.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/WZKSpb3.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" />';
+						
+					}
+					if (id_ == "JokeAchievements_") {
+						
+						document.getElementById(id_).innerHTML = '<img src="http:\/\/i.imgur.com\/Hrcckpi.png" alt="Welcome to the Internets|Fail to understand what \'Private\' means on YouTube." onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/7r2E09E.png" alt="Fake an email from Robin|At a most opportune time, use Photoshop to fool innocents into thinking you received a cryptic reply from Robin." onclick="preset(this);pretext(this);store=this;priority=0;" />';
+						
+					}
+					if (id_ == "MapAchievements_") {
+						
+						document.getElementById(id_).innerHTML = '<img src="http:\/\/i.imgur.com\/ENEGdEp.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/ahHnBju.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/0Lab5oN.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/MoyqvoC.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/Shmde4H.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/hXJJU7w.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/mKZRWSK.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/P8gdjDL.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/LhaKDDC.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/AB4Cpfg.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/z9Lknrz.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/erwN3g6.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/doj10j3.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/RsnliLR.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/DY1HLb7.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/oPCqUy9.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/OeBEYv9.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/OV6haeC.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http:\/\/i.imgur.com\/OPTWwmI.png" onclick="preset(this);pretext(this);store=this;priority=0;" />';
+						
+					}
+					if (id_ == "TauntIcons_") {
+						
+						document.getElementById(id_).innerHTML = '<img src="http:\/\/i.imgur.com\/dLmvqQ4.png" onclick="preset(this);store=this;priority=0;" id="TauntTest" /><img src="http:\/\/i.imgur.com\/C30skp7.png" onclick="preset(this);store=this;priority=0;" id="TauntTest" /><img src="http:\/\/i.imgur.com\/mOMjzyN.png" onclick="preset(this);store=this;priority=0;" id="TauntTest" /><img src="http:\/\/i.imgur.com\/K96sd2W.png" onclick="preset(this);store=this;priority=0;" id="TauntTest" /><img src="http:\/\/i.imgur.com\/Or7FnoU.png" onclick="preset(this);store=this;priority=0;" id="TauntTest" /><img src="http:\/\/i.imgur.com\/5o1dSlm.png" onclick="preset(this);store=this;priority=0;" id="TauntTest" /><img src="http:\/\/i.imgur.com\/1BCsP1P.png" onclick="preset(this);store=this;priority=0;" id="TauntTest" /><img src="http:\/\/i.imgur.com\/aPGpZm7.png" onclick="preset(this);store=this;priority=0;" id="TauntTest" /><img src="http:\/\/i.imgur.com\/sLf9Bro.png" onclick="preset(this);store=this;priority=0;" id="TauntTest" /><img src="http:\/\/i.imgur.com\/A2I9sfk.png" onclick="preset(this);store=this;priority=0;" id="TauntTest" /><img src="http:\/\/i.imgur.com\/cSoO1jg.png" onclick="preset(this);store=this;priority=0;" id="TauntTest" /><img src="http:\/\/i.imgur.com\/kVxpY1W.png" onclick="preset(this);store=this;priority=0;" id="TauntTest" /><img src="http:\/\/i.imgur.com\/ZkxfIe6.png" onclick="preset(this);store=this;priority=0;" id="TauntTest" /><img src="http:\/\/i.imgur.com\/lKgtTGi.png" onclick="preset(this);store=this;priority=0;" id="TauntTest" /><img src="http:\/\/i.imgur.com\/QlFfA2C.png" onclick="preset(this);store=this;priority=0;" id="TauntTest" /><img src="http:\/\/i.imgur.com\/JpeTy30.png" onclick="preset(this);store=this;priority=0;" id="TauntTest" /><img src="http:\/\/i.imgur.com\/5PoubHC.png" onclick="preset(this);store=this;priority=0;" id="TauntTest" /><img src="http:\/\/i.imgur.com\/j6c263Y.png" onclick="preset(this);store=this;priority=0;" id="TauntTest" /><img src="http:\/\/i.imgur.com\/w4BaraI.png" onclick="preset(this);store=this;priority=0;" id="TauntTest" /><img src="http:\/\/i.imgur.com\/TUrLgGa.png" onclick="preset(this);store=this;priority=0;" id="TauntTest" />';
+						
+					}
+					
+					if (id_ == "TF2FR_") {
+						
+						document.getElementById(id_).innerHTML = '<blockquote><button type="button" id="Foliok" onclick="toggleDisplay(this);">Foliok</button><div id="Foliok_" style="display:none;width:772px;margin-left:auto;margin-right:auto;" data-al="0"></div><br /><button type="button" id="Deleted" onclick="toggleDisplay(this);">Deleted</button><div id="Deleted_" style="display:none;width:772px;margin-left:auto;margin-right:auto;" data-al="0"></div><br /><button type="button" id="Seringue" onclick="toggleDisplay(this);">Seringue</button><div id="Seringue_" style="display:none;width:772px;margin-left:auto;margin-right:auto;" data-al="0"></div><br /><button type="button" id="StoneRabbit" onclick="toggleDisplay(this);">StoneRabbit</button><div id="StoneRabbit_" style="display:none;width:772px;margin-left:auto;margin-right:auto;" data-al="0"></div><br /><button type="button" id="Toxicow" onclick="toggleDisplay(this);">Toxicow</button><div id="Toxicow_" style="display:none;width:772px;margin-left:auto;margin-right:auto;" data-al="0"></div><br /><button type="button" id="Zippy" onclick="toggleDisplay(this);">Zippy (Fake Soldier Update)</button><div id="Zippy_" style="display:none;width:772px;margin-left:auto;margin-right:auto;" data-al="0"></div><br /><button type="button" id="Other" onclick="toggleDisplay(this);">Other</button><div id="Other_" style="display:none;width:772px;margin-left:auto;margin-right:auto;" data-al="0"></div><br /><button type="button" id="SoftRetouches" onclick="toggleDisplay(this);">Soft Retouches</button><div id="SoftRetouches_" style="display:none;width:772px;margin-left:auto;margin-right:auto;" data-al="0"></div><br /></blockquote>';
+						
+					}
+					
+					if (id_ == "Deleted_") {
+						
+						document.getElementById(id_).innerHTML = '<img src="http://i.imgur.com/HiB2plb.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/XKuqYuZ.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/8bOvjvw.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/mxQIXIb.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/wgYYxkP.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/OZogejc.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/r3j4xOW.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/Aon9TZb.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/qox84JU.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/G8SEWjm.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/c2EkC8l.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/bGXuhXx.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/1tPod5L.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/Vhmfm5n.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/SAdzq2I.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/c5y83fw.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/aiqMOd9.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/BUPMGqq.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/nuApsQI.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/ZNqfMhu.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/yhs7e3n.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/dzFsxi3.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/DMzGH34.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/owxrn1A.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/5CXiulM.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/ckQ4D2Y.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/WJpC4E2.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/DMLyhC6.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/A3UnjW0.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/WIZCNVr.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/trMmjQ0.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/MmZjaps.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/btVdZ0F.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/qvxnrA9.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/8zo4wMH.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/HdVZSIV.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/VxTbn9x.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/YkCuVfN.png" onclick="preset(this);pretext(this);store=this;priority=0;" />';
+						
+					}
+					
+					if (id_ == "Foliok_") {
+						
+						document.getElementById(id_).innerHTML = '<img src="http://i.imgur.com/9oyFZTc.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/R3U1dQJ.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/5VakKy9.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/oEr6pg5.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/t4be1HD.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/dh85eND.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/4HL37Om.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/WmqoOnE.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/UJKtR2I.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/opKmeUr.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/Sl3VS0D.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/1eBJ9UN.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/2meAsji.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/IvRWNo8.png" onclick="preset(this);pretext(this);store=this;priority=0;" />';
+						
+					}
+					
+					if (id_ == "Other_") {
+						
+						document.getElementById(id_).innerHTML = '<p>FullGtO, Schafi, Siquall, Slade, Doktor Zacbru, Soupalonion, and others... </p><br /><img src="http://i.imgur.com/eh0gyUk.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/z91zgcL.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/DWscDM4.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/xehJiIT.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/eKiMeS5.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/IPPlmsk.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/3XSclto.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/9jA2aIQ.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/JXO2e6V.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/BDgDmPQ.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/CAGD6zd.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/lCQxPk1.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/TWKhZbJ.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/HHbovfh.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/dhpaxGb.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/v4Tmo8f.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/25kpmYw.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/JMKEdCi.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/rG8nkWf.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/lTJyfEa.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/7LS7D8x.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/IVr5Mxw.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/gq2YVQp.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/yW0KI6c.png" onclick="preset(this);pretext(this);store=this;priority=0;" />';
+						
+					}
+					
+					if (id_ == "Seringue_") {
+						
+						document.getElementById(id_).innerHTML = '<img src="http://i.imgur.com/QDIRfyd.jpg"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/N5FDIuP.png"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/dcNsFBd.png"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/XZJemq1.png"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/KpdXkHw.png"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/j2LWRAc.png"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/7G40fY1.jpg"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/TYYXKQh.png"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/TQNceSb.jpg"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/WGk8Yqi.png"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/vlCEr4K.jpg"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/nvhMMKl.png"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/d6nhdJC.jpg"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/sHNgbBI.png"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/55uJ2RP.jpg"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/VbJ1naI.png"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/h0yOQ4T.jpg"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/QIJ5dkZ.png"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/vOj4ghE.jpg"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/7n3lBVU.png"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/8bXSbOc.jpg"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/tX92YIq.png"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/7MYn8JC.jpg"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/kXVpyM6.png"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/l2M1g4h.jpg"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/O9SVN6H.png" />';
+						
+					}
+					
+					if (id_ == "StoneRabbit_") {
+						
+						document.getElementById(id_).innerHTML = '<img src="http://i.imgur.com/dQ6ihNu.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/riULI0b.jpg"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/XtceBWX.png"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/KzVkcIG.jpg"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/e0lI9Bg.png"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/O9AtzCm.jpg"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/nspjYEY.png"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/9kSa615.jpg"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/dBerI5G.png"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/8LzjoJ0.jpg"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/OTFAbMT.png"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/snANxpK.jpg"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/HekuOJy.png"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/vW5gFhC.jpg"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/lwIfsMq.png"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/tnwbZje.jpg"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/mq7IfyE.png"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/UVo21CF.jpg"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/qBIU0DF.jpg"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/gGkaxwz.jpg"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/TEH1KOX.jpg"  onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/cEwuIkn.jpg" onclick="preset(this);pretext(this);store=this;priority=0;" />';
+						
+					}
+					
+					if (id_ == "Toxicow_") {
+						
+						document.getElementById(id_).innerHTML = '<img src="http://i.imgur.com/Pqgik4Y.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/cd6sLw0.gif" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/XXMZEX0.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/P1oArtH.gif" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/v7weHti.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/NtFpIh2.gif" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/W4K8p6F.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/dXLIutA.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/qjf75sl.gif" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/GWbkL34.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/oyRRXvK.gif" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/MVtah25.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/jvGNB4l.gif" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/insmpjC.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/mR3GdpX.gif" onclick="preset(this);pretext(this);store=this;priority=0;" />';
+						
+					}
+					
+					if (id_ == "Zippy_") {
+						
+						document.getElementById(id_).innerHTML = '<img src="http://i.imgur.com/kOxG1Qn.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/GWSbxBh.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/OAU9nd8.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/GcfdPML.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/ycwYPwn.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/RlSP5L4.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/yiUnbTU.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/aoKzfat.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/mQosRai.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/Lgy5Ykv.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/nscD3vC.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/7Y51RjI.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/OiQa5Vw.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/8D5Pvyl.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/Kekt8gC.png" onclick="preset(this);pretext(this);store=this;priority=0;" />';
+
+						
+					}
+					
+					if (id_ == "SoftRetouches_") {
+						
+						document.getElementById(id_).innerHTML = '<img src="http://i.imgur.com/elGAzDR.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/yTMkrz8.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/fo4mbwI.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/tt3SZkM.png" onclick="preset(this);pretext(this);store=this;priority=0;" />';
+						
+					}
+					
+					if (id_ == "Astrochievements_") {
+						
+						document.getElementById(id_).innerHTML = '<img src="http://i.imgur.com/WOE4XCK.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/jcwLhqY.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/fkGp8PQ.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/Ge4JXIc.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/WRisjxA.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/zBEyZjQ.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/6ASQibf.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/TRAZHug.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/5WpHhs0.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/pZYxbhM.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/Zz5GxWG.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/gfRkBlJ.png" onclick="preset(this);pretext(this);store=this;priority=0;" />';
+						
+					}
 					
 				}
 				
-				if (id_ == "SoftRetouches_") {
+				else {
 					
-					document.getElementById(id_).innerHTML = '<img src="http://i.imgur.com/elGAzDR.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/yTMkrz8.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/fo4mbwI.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/tt3SZkM.png" onclick="preset(this);pretext(this);store=this;priority=0;" />';
 					
-				}
-				
-				if (id_ == "Astrochievements_") {
-					
-					document.getElementById(id_).innerHTML = '<img src="http://i.imgur.com/WOE4XCK.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/jcwLhqY.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/fkGp8PQ.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/Ge4JXIc.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/WRisjxA.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/zBEyZjQ.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/6ASQibf.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/TRAZHug.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/5WpHhs0.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/pZYxbhM.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/Zz5GxWG.png" onclick="preset(this);pretext(this);store=this;priority=0;" /><img src="http://i.imgur.com/gfRkBlJ.png" onclick="preset(this);pretext(this);store=this;priority=0;" />';
 					
 				}
 				
 			}
-			
-			else {
-				
-				
-				
-			}
-			
-		}
-		
 		</script>
-
 	</body>
 </html>
